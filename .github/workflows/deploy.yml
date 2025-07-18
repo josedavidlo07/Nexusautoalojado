@@ -22,7 +22,7 @@ jobs:
         source: "./"
         target: "~/devops-final"
 
-    - name: Deploy via SSH + Upload to Nexus
+    - name: Deploy and upload artifact to Nexus
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -31,19 +31,31 @@ jobs:
         script: |
           cd ~/devops-final
 
-          echo " Limpiando contenedores antiguos"
+          echo "Limpiando contenedores antiguos"
           docker-compose down
 
-          echo " Reconstruyendo imágenes"
+          echo "Reconstruyendo imágenes"
           docker-compose build --no-cache
 
-          echo " Levantando servicios"
+          echo "Levantando servicios"
           docker-compose up -d
 
-          echo " Empaquetando artefacto...."
+          echo "Esperando que Nexus esté listo..."
+          for i in {1..10}; do
+            if curl -sSf http://localhost:8081 > /dev/null; then
+              echo "Nexus está listo."
+              break
+            else
+              echo "Esperando a Nexus... intento $i"
+              sleep 10
+            fi
+          done
+
+          echo "Empaquetando artefacto..."
           zip -r build.zip app run.py requirements.txt docker-compose.yml Dockerfile
 
-          echo " Subiendo artefacto a Nexus...."
+          echo "Subiendo artefacto a Nexus..."
           curl -v -u admin:${{ secrets.NEXUS_PASSWORD }} \
           --upload-file build.zip \
-          http://ec2-54-237-193-105.compute-1.amazonaws.com:8081/repository/fastapi-artifacts/v1.0.0/build.zip
+          http://localhost:8081/repository/fastapi-artifacts/v1.0.0/build.zip
+
