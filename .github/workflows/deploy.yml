@@ -40,7 +40,7 @@ jobs:
           echo " Levantando servicios"
           docker-compose up -d
 
-          echo " Empaquetando artefacto..."
+          echo " Empaquetando artefacto...."
           zip -r build.zip app run.py requirements.txt docker-compose.yml Dockerfile
 
           echo " Subiendo artefacto a Nexus...."
