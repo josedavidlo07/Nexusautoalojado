@@ -43,7 +43,7 @@ jobs:
           echo " Empaquetando artefacto..."
           zip -r build.zip app run.py requirements.txt docker-compose.yml Dockerfile
 
-          echo " Subiendo artefacto a Nexus..."
+          echo " Subiendo artefacto a Nexus...."
           curl -v -u admin:${{ secrets.NEXUS_PASSWORD }} \
           --upload-file build.zip \
           http://ec2-54-237-193-105.compute-1.amazonaws.com:8081/repository/fastapi-artifacts/v1.0.0/build.zip
